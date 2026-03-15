@@ -1,0 +1,292 @@
+[
+  {
+    "id": 1,
+    "make": "BMW",
+    "model": "X1 sDrive18i M Sport",
+    "year": 2023,
+    "price": 4500000,
+    "type": "SUV",
+    "image_url": "https://images.unsplash.com/photo-1556189250-72ba954cfc2b?auto=format&fit=crop&w=800&q=80",
+    "overview": {
+      "fuel_type": "Petrol",
+      "km_driven": "12,500 kms",
+      "transmission": "Automatic",
+      "ownership": "1st Owner"
+    },
+    "specs": {
+      "engine_displacement": "1499 cc",
+      "max_power": "134.10 bhp",
+      "max_torque": "230 Nm",
+      "seating_capacity": 5
+    },
+    "features": [
+      "Panoramic Sunroof",
+      "6 Airbags",
+      "Apple CarPlay",
+      "Ambient Lighting"
+    ],
+    "presales_pitch": "A stunning luxury SUV with M Sport styling and impeccable maintenance.",
+    "aftersales_schedule": "Next scheduled service at 15,000 kms or 1 year. Brake pad inspection required."
+  },
+  {
+    "id": 2,
+    "make": "Tesla",
+    "model": "Model 3 Performance",
+    "year": 2024,
+    "price": 5500000,
+    "type": "Sedan",
+    "image_url": "https://images.unsplash.com/photo-1560958089-b8a1929cea89?auto=format&fit=crop&w=800&q=80",
+    "overview": {
+      "fuel_type": "Electric",
+      "km_driven": "5,200 kms",
+      "transmission": "Automatic",
+      "ownership": "1st Owner"
+    },
+    "specs": {
+      "engine_displacement": "N/A (Dual Motor)",
+      "max_power": "450 bhp",
+      "max_torque": "639 Nm",
+      "seating_capacity": 5
+    },
+    "features": [
+      "Autopilot",
+      "15-inch Touchscreen",
+      "Glass Roof",
+      "Wireless Charging"
+    ],
+    "presales_pitch": "The future of driving with insane acceleration and industry-leading tech.",
+    "aftersales_schedule": "Tire rotation at 10,000 kms. Brake fluid check every 2 years."
+  },
+  {
+    "id": 3,
+    "make": "Toyota",
+    "model": "Innova Hycross ZX",
+    "year": 2024,
+    "price": 3200000,
+    "type": "MPV",
+    "image_url": "https://images.unsplash.com/photo-1621243819234-2539cd72957d?auto=format&fit=crop&w=800&q=80",
+    "overview": {
+      "fuel_type": "Hybrid",
+      "km_driven": "8,000 kms",
+      "transmission": "E-CVT",
+      "ownership": "1st Owner"
+    },
+    "specs": {
+      "engine_displacement": "1987 cc",
+      "max_power": "184 bhp",
+      "max_torque": "206 Nm",
+      "seating_capacity": 7
+    },
+    "features": [
+      "Ottoman Seats",
+      "JBL Sound System",
+      "Lane Trace Assist",
+      "Ventilated Seats"
+    ],
+    "presales_pitch": "Ultimate family comfort combined with incredible hybrid fuel efficiency.",
+    "aftersales_schedule": "First free service at 10,000 kms. Hybrid battery health check annually."
+  },
+  {
+    "id": 4,
+    "make": "Ford",
+    "model": "Mustang GT",
+    "year": 2022,
+    "price": 7500000,
+    "type": "Coupe",
+    "image_url": "https://images.unsplash.com/photo-1584345604481-03ad2eef59b5?auto=format&fit=crop&w=800&q=80",
+    "overview": {
+      "fuel_type": "Petrol",
+      "km_driven": "15,000 kms",
+      "transmission": "Manual",
+      "ownership": "2nd Owner"
+    },
+    "specs": {
+      "engine_displacement": "4951 cc",
+      "max_power": "395 bhp",
+      "max_torque": "515 Nm",
+      "seating_capacity": 4
+    },
+    "features": [
+      "V8 Engine",
+      "Brembo Brakes",
+      "Track Mode",
+      "Leather Interior"
+    ],
+    "presales_pitch": "Pure muscle and raw power. This Mustang is a head-turner with a soul-stirring V8 exhaust note.",
+    "aftersales_schedule": "Oil change every 7,500 kms. Spark plug replacement at 40,000 kms."
+  },
+  {
+    "id": 5,
+    "make": "Hyundai",
+    "model": "Creta SX(O)",
+    "year": 2023,
+    "price": 1800000,
+    "type": "SUV",
+    "image_url": "https://images.unsplash.com/photo-1662581852329-f739266b2d18?auto=format&fit=crop&w=800&q=80",
+    "overview": {
+      "fuel_type": "Diesel",
+      "km_driven": "20,000 kms",
+      "transmission": "Automatic",
+      "ownership": "1st Owner"
+    },
+    "specs": {
+      "engine_displacement": "1493 cc",
+      "max_power": "113 bhp",
+      "max_torque": "250 Nm",
+      "seating_capacity": 5
+    },
+    "features": [
+      "Panoramic Sunroof",
+      "Bose Audio",
+      "BlueLink Tech",
+      "Air Purifier"
+    ],
+    "presales_pitch": "India's favorite SUV - fully loaded with features and extremely practical for city & highway.",
+    "aftersales_schedule": "General service every 10,000 kms. Diesel fuel filter change required now."
+  },
+  {
+    "id": 6,
+    "make": "Audi",
+    "model": "A6 45 TFSI",
+    "year": 2022,
+    "price": 6200000,
+    "type": "Sedan",
+    "image_url": "https://images.unsplash.com/photo-1606152424101-ad29bc788c80?auto=format&fit=crop&w=800&q=80",
+    "overview": {
+      "fuel_type": "Petrol",
+      "km_driven": "11,000 kms",
+      "transmission": "Automatic",
+      "ownership": "1st Owner"
+    },
+    "specs": {
+      "engine_displacement": "1984 cc",
+      "max_power": "241 bhp",
+      "max_torque": "370 Nm",
+      "seating_capacity": 5
+    },
+    "features": [
+      "Virtual Cockpit",
+      "Matrix LED",
+      "Soft Close Doors",
+      "Bang & Olufsen"
+    ],
+    "presales_pitch": "Sophistication meets performance. An executive sedan that offers unparalleled refinement.",
+    "aftersales_schedule": "Next service due in 4,000 kms. Brake fluid flush recommended."
+  },
+  {
+    "id": 7,
+    "make": "Honda",
+    "model": "City e:HEV",
+    "year": 2023,
+    "price": 2000000,
+    "type": "Sedan",
+    "image_url": "https://images.unsplash.com/photo-1620216443422-94f4f3468579?auto=format&fit=crop&w=800&q=80",
+    "overview": {
+      "fuel_type": "Hybrid",
+      "km_driven": "9,500 kms",
+      "transmission": "e-CVT",
+      "ownership": "1st Owner"
+    },
+    "specs": {
+      "engine_displacement": "1498 cc",
+      "max_power": "125 bhp",
+      "max_torque": "253 Nm",
+      "seating_capacity": 5
+    },
+    "features": [
+      "Honda Sensing ADAS",
+      "Regenerative Braking",
+      "Electric Sunroof",
+      "LaneWatch Camera"
+    ],
+    "presales_pitch": "The most efficient sedan in its class. Quiet, eco-friendly, and tech-forward.",
+    "aftersales_schedule": "Hybrid system check at 15,000 kms. Regular oil Change at 10k."
+  },
+  {
+    "id": 8,
+    "make": "Volkswagen",
+    "model": "Virtus GT Plus",
+    "year": 2024,
+    "price": 1900000,
+    "type": "Sedan",
+    "image_url": "https://images.unsplash.com/photo-1662366810231-15b6302e7b1c?auto=format&fit=crop&w=800&q=80",
+    "overview": {
+      "fuel_type": "Petrol",
+      "km_driven": "3,000 kms",
+      "transmission": "DSG",
+      "ownership": "1st Owner"
+    },
+    "specs": {
+      "engine_displacement": "1498 cc",
+      "max_power": "148 bhp",
+      "max_torque": "250 Nm",
+      "seating_capacity": 5
+    },
+    "features": [
+      "Cylinder Deactivation",
+      "Digital Instrument Cluster",
+      "Ventilated Seats",
+      "Wireless Carplay"
+    ],
+    "presales_pitch": "Engineered for enthusiasts. The TSI engine and DSG gearbox provide a thrilling drive.",
+    "aftersales_schedule": "TSI health check at 5,000 kms. First service at 15,000 kms."
+  },
+  {
+    "id": 9,
+    "make": "Land Rover",
+    "model": "Defender 110",
+    "year": 2023,
+    "price": 11000000,
+    "type": "SUV",
+    "image_url": "https://images.unsplash.com/photo-1617540203598-a3770338787f?auto=format&fit=crop&w=800&q=80",
+    "overview": {
+      "fuel_type": "Diesel",
+      "km_driven": "18,000 kms",
+      "transmission": "Automatic",
+      "ownership": "1st Owner"
+    },
+    "specs": {
+      "engine_displacement": "2997 cc",
+      "max_power": "296 bhp",
+      "max_torque": "650 Nm",
+      "seating_capacity": 5
+    },
+    "features": [
+      "AWD",
+      "Pivi Pro Infotainment",
+      "Air Suspension",
+      "360 Surround Camera"
+    ],
+    "presales_pitch": "The icon reimagined. Capable of conquering any terrain while keeping you in absolute luxury.",
+    "aftersales_schedule": "Air suspension calibration check every 20,000 kms. AdBlue refill required."
+  },
+  {
+    "id": 10,
+    "make": "Mercedes-Benz",
+    "model": "C-Class C200",
+    "year": 2023,
+    "price": 6000000,
+    "type": "Sedan",
+    "image_url": "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?auto=format&fit=crop&w=800&q=80",
+    "overview": {
+      "fuel_type": "Petrol",
+      "km_driven": "7,800 kms",
+      "transmission": "Automatic",
+      "ownership": "1st Owner"
+    },
+    "specs": {
+      "engine_displacement": "1496 cc",
+      "max_power": "201 bhp",
+      "max_torque": "300 Nm",
+      "seating_capacity": 5
+    },
+    "features": [
+      "MBUX Infotainment",
+      "Burmester Surround Sound",
+      "Active Park Assist",
+      "Rear Axle Steering"
+    ],
+    "presales_pitch": "The Baby S-Class. Experience the pinnacle of luxury sedans in a compact, sporty package.",
+    "aftersales_schedule": "Next service in 12 months. Synthetic oil and filter change."
+  }
+]
