@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import NavBar from "@/components/NavBar";
-import ViniChat from "@/components/ViniChat";
+import IdentityClientWrapper from "@/components/IdentityClientWrapper";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -19,6 +19,8 @@ export const metadata: Metadata = {
   description: "AI-powered SaaS prototype for modern car dealerships.",
 };
 
+import { useIdentity } from "@/hooks/useIdentity";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -31,10 +33,11 @@ export default function RootLayout({
         suppressHydrationWarning={true}
       >
         <NavBar />
-        <main className="flex-1 flex flex-col">
-          {children}
-        </main>
-        <ViniChat />
+        <IdentityClientWrapper>
+          <main className="flex-1 flex flex-col">
+            {children}
+          </main>
+        </IdentityClientWrapper>
       </body>
     </html>
   );

@@ -9,7 +9,32 @@ export const maxDuration = 30;
 
 export async function POST(req: Request) {
     const body = await req.json();
-    const { messages, stage } = body;
+    const { messages, stage, customer_id, vendor_id = 'dealer_default' } = body;
+
+    // 1. Ensure Customer Exists
+    if (customer_id) {
+        const { data: existingCustomer } = await supabase
+            .from('customers')
+            .select('id')
+            .eq('id', customer_id)
+            .single();
+
+        if (!existingCustomer) {
+            await supabase.from('customers').insert({ id: customer_id, name: 'Anonymous User' });
+        }
+    }
+
+    // 2. Ensure Vendor Lead Entry Exists (Upsert)
+    if (customer_id && vendor_id) {
+        await supabase
+            .from('vendor_leads')
+            .upsert({ 
+                customer_id, 
+                vendor_id 
+            }, { 
+                onConflict: 'customer_id,vendor_id' 
+            });
+    }
 
     // Get car data formatted as a context string
     const carContext = cars.map(c =>
@@ -19,16 +44,21 @@ export async function POST(req: Request) {
     let systemPrompt = "";
     if (stage === 'Presales') {
         systemPrompt = `You are Vini, the SpyneAuto AI sales assistant. 
-STRICT CONSTRAINT: Every response must be under 100 characters. Be punchy and direct.
-YOUR OBJECTIVE: Collect user requirements into this JSON format: { "name": "", "budget": "", "use_case": "", "urgency": "" }.
+YOUR OBJECTIVE: Collect user requirements and ultimately guide them to book a test drive.
 INTERACTIVE TOOLS:
-1. list_cars(preferences): Use this when the user asks for suggestions or shows interest in buying. Suggest 3 relevant cars.
-2. book_demo(collected_info): Use this when the user wants to book a test drive.
-CHAT FLOW: Greeting -> Budget -> Use Case -> Urgency -> Call to Action.
+1. list_cars(preferences): Use this when the user asks for suggestions or shows interest in specific types of cars.
+2. book_demo(collected_info): CRITICAL - You MUST use this tool immediately if the user expresses ANY interest in a test drive, demo, showroom visit, or says "Request Test Drive". Do not ask more questions if they trigger this intent. Pre-fill any info you have (name, phone).
+
+CHAT FLOW:
+- Greeting: Build rapport.
+- Qualification: Briefly understand budget/use-case.
+- Suggestion: Use 'list_cars' to show inventory.
+- Conversion: Use 'book_demo' for the final call to action.
+
 Car Inventory: ${carContext}`;
     } else if (stage === 'Sales') {
-        systemPrompt = `You are Vini, a Senior Sales Executive. Use 'book_demo' if the user is ready.
-Goal: Convert to showroom visit. 
+        systemPrompt = `You are Vini, a Senior Sales Executive. 
+Your primary goal is to get the user to confirm their demo/test drive details. Use the 'book_demo' tool if they haven't confirmed yet or if they ask to schedule.
 Car Inventory: ${carContext}`;
     } else {
         systemPrompt = `You are Vini, the Service Concierge.
@@ -105,7 +135,7 @@ Car Inventory: ${carContext}`;
             maxRetries: 0,
             onFinish: async (props) => {
                 try {
-                    await handleChatFinish(props, messages, google);
+                    await handleChatFinish(props, messages, google, customer_id, vendor_id);
                 } catch (e) {
                     console.error("handleChatFinish failed:", e);
                 }
@@ -139,7 +169,7 @@ Car Inventory: ${carContext}`;
                 maxRetries: 0,
                 onFinish: async (props) => {
                     try {
-                        await handleChatFinish(props, messages, googleSecondary);
+                        await handleChatFinish(props, messages, googleSecondary, customer_id, vendor_id);
                     } catch (e) {
                         console.error("handleChatFinish failed (Secondary):", e);
                     }
@@ -175,56 +205,85 @@ Car Inventory: ${carContext}`;
     }
 }
 
-async function handleChatFinish({ text, toolCalls }: any, messages: any[], google: any) {
+async function handleChatFinish({ text, toolCalls, toolResults }: any, messages: any[], google: any, customer_id?: string, vendor_id?: string) {
     try {
-        const { data: customer } = await supabase
-            .from('customers')
+        console.log("Chat Finished - Tool Results:", JSON.stringify(toolResults, null, 2));
+        if (!customer_id || !vendor_id) {
+            console.log("Missing identity - skipping DB update");
+            return;
+        }
+
+        const { data: lead } = await supabase
+            .from('vendor_leads')
             .select('*')
-            .eq('name', 'Test Setup User')
+            .eq('customer_id', customer_id)
+            .eq('vendor_id', vendor_id)
             .single();
 
-        if (customer) {
+        if (lead) {
             const lastUserMsg = messages[messages.length - 1]?.parts?.[0]?.text || "";
             const newTranscript = [
-                ...(customer.chat_transcript || []),
+                ...(lead.chat_transcript || []),
                 { role: 'user', content: lastUserMsg },
-                { role: 'assistant', content: text, toolCalls }
+                { role: 'assistant', content: text, toolInvocations: toolResults }
             ];
 
             const updatePayload: any = { chat_transcript: newTranscript };
 
-            const { text: extractionText } = await generateText({
-                model: google('gemini-flash-latest'),
-                system: "Extract lead data JSON: {name, budget, use_case, urgency}",
-                prompt: `History: ${JSON.stringify(newTranscript)}`
-            });
+            // Check for successful booking in toolResults
+            const bookingResult = toolResults?.find((tr: any) => tr.toolName === 'book_demo' && (tr.result?.success || tr.output?.success));
+            
+            if (bookingResult) {
+                const { name, phone, date, time } = bookingResult.result || bookingResult.output || {};
+                
+                updatePayload.stage = 'Sales';
+                updatePayload.intent_score = 'Hot';
+                updatePayload.intent_summary = JSON.stringify({
+                    insights: { name, phone, date, time_slot: time },
+                    last_update: new Date().toISOString()
+                });
 
-            try {
-                const jsonMatch = extractionText.match(/\{[\s\S]*\}/);
-                if (jsonMatch) {
-                    const extractedData = JSON.parse(jsonMatch[0]);
-                    updatePayload.intent_summary = JSON.stringify({
-                        insights: extractedData,
-                        last_update: new Date().toISOString()
-                    });
-
-                    const filledCount = ['name', 'budget', 'use_case', 'urgency'].filter(f => extractedData[f]?.length > 0).length;
-                    if (filledCount >= 3) updatePayload.intent_score = 'Hot';
-                    else if (filledCount >= 1) updatePayload.intent_score = 'Warm';
+                if (name || phone) {
+                    await supabase.from('customers').update({ 
+                        ...(name && { name }), 
+                        ...(phone && { phone }) 
+                    }).eq('id', customer_id);
                 }
-            } catch (e) { }
 
-            const bookingTool = toolCalls?.find((tc: any) => tc.toolName === 'book_demo');
-            if (bookingTool) {
-                const { car_model } = (bookingTool as any).input || {};
-                const currentPlan = customer.engagement_plan || [];
+                const currentPlan = lead.engagement_plan || [];
                 updatePayload.engagement_plan = [
                     ...currentPlan,
-                    { day: "Today", action: `📅 Demo Booking Triggered for ${car_model || 'selected car'}.` }
+                    { day: "Today", action: `📅 Demo Booking Confirmed for ${date} at ${time}. Lead moved to Sales stage.` }
                 ];
+            } else {
+                // Regular extraction if no booking
+                const { text: extractionText } = await generateText({
+                    model: google('gemini-flash-latest'),
+                    system: "Extract lead data JSON: {name, budget, use_case, urgency}",
+                    prompt: `History: ${JSON.stringify(newTranscript)}`
+                });
+
+                try {
+                    const jsonMatch = extractionText.match(/\{[\s\S]*\}/);
+                    if (jsonMatch) {
+                        const extractedData = JSON.parse(jsonMatch[0]);
+                        updatePayload.intent_summary = JSON.stringify({
+                            insights: extractedData,
+                            last_update: new Date().toISOString()
+                        });
+
+                        const filledCount = ['name', 'budget', 'use_case', 'urgency'].filter(f => extractedData[f]?.length > 0).length;
+                        if (filledCount >= 3) updatePayload.intent_score = 'Hot';
+                        else if (filledCount >= 1) updatePayload.intent_score = 'Warm';
+                        
+                        if (extractedData.name) {
+                            await supabase.from('customers').update({ name: extractedData.name }).eq('id', customer_id);
+                        }
+                    }
+                } catch (e) { }
             }
 
-            await supabase.from('customers').update(updatePayload).eq('id', customer.id);
+            await supabase.from('vendor_leads').update(updatePayload).eq('id', lead.id);
         }
     } catch (e) {
         console.error("handleChatFinish error:", e);

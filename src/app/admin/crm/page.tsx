@@ -14,8 +14,8 @@ export default function LeadManagement() {
     useEffect(() => {
         const fetchLeads = async () => {
             const { data } = await supabase
-                .from('customers')
-                .select('*')
+                .from('vendor_leads')
+                .select('*, customers(*)')
                 .order('created_at', { ascending: false });
 
             if (data) {
@@ -28,8 +28,8 @@ export default function LeadManagement() {
     }, []);
 
     const filteredLeads = leads.filter(l =>
-        (l.name || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (l.phone || "").includes(searchQuery)
+        (l.customers?.name || "Anonymous").toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (l.customers?.phone || "").includes(searchQuery)
     );
 
     const handleSelectLead = (lead: any) => {
@@ -81,7 +81,7 @@ export default function LeadManagement() {
                             >
                                 <div className="flex justify-between items-start mb-2">
                                     <div className={`font-bold tracking-tight truncate pr-2 ${selectedLead?.id === lead.id ? 'text-white' : 'text-slate-900'}`}>
-                                        {lead.name || "Anonymous Lead"}
+                                        {lead.customers?.name || "Anonymous Lead"}
                                     </div>
                                     <span className={`text-[10px] uppercase font-black tracking-widest px-2.5 py-1 rounded-full whitespace-nowrap ${selectedLead?.id === lead.id
                                         ? 'bg-white/20 text-white'
@@ -94,10 +94,10 @@ export default function LeadManagement() {
                                 </div>
                                 <div className="flex justify-between items-center text-xs">
                                     <div className={`font-medium ${selectedLead?.id === lead.id ? 'text-indigo-100' : 'text-slate-500'}`}>
-                                        {lead.phone || "N/A"}
+                                        {lead.customers?.phone || "N/A"}
                                     </div>
                                     <div className={`font-black uppercase tracking-widest text-[9px] px-2 py-0.5 rounded ${selectedLead?.id === lead.id ? 'bg-indigo-700' : 'bg-slate-100 text-slate-500'}`}>
-                                        {lead.stage}
+                                        {lead.vendor_id}
                                     </div>
                                 </div>
                                 {selectedLead?.id === lead.id && (
@@ -121,10 +121,13 @@ export default function LeadManagement() {
                                 </div>
                                 <div>
                                     <div className="text-[10px] font-black text-indigo-600 uppercase tracking-[0.2em] mb-1">Lead Prospect</div>
-                                    <h2 className="text-3xl font-black text-slate-900 tracking-tight">{selectedLead.name || "Anonymous User"}</h2>
+                                    <h2 className="text-3xl font-black text-slate-900 tracking-tight">{selectedLead.customers?.name || "Anonymous User"}</h2>
                                     <div className="flex items-center gap-6 mt-3">
                                         <div className="flex items-center gap-2 text-sm font-bold text-slate-500">
-                                            <Phone className="w-4 h-4 text-indigo-500" /> {selectedLead.phone || "No phone"}
+                                            <Phone className="w-4 h-4 text-indigo-500" /> {selectedLead.customers?.phone || "No phone"}
+                                        </div>
+                                        <div className="flex items-center gap-2 text-sm font-bold text-slate-500">
+                                            <MapPin className="w-4 h-4 text-indigo-500" /> {selectedLead.vendor_id}
                                         </div>
                                         <div className="flex items-center gap-2 text-sm font-bold text-slate-500">
                                             <Calendar className="w-4 h-4 text-indigo-500" /> Member since {new Date(selectedLead.created_at).toLocaleDateString()}
@@ -217,33 +220,54 @@ export default function LeadManagement() {
                                     </div>
                                 </div>
 
-                                {/* Right Col: Interaction Plan */}
-                                <div className="space-y-6">
-                                    <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest flex items-center gap-3">
-                                        <CheckCircle2 className="w-5 h-5 text-indigo-500" />
-                                        AI Predicted Sales Plan
-                                    </h3>
-                                    <div className="bg-white rounded-[2.5rem] border border-slate-200 p-8 shadow-sm space-y-8">
-                                        {[
-                                            { d: "Day 1", a: "Send digital brochure via WhatsApp based on car interest.", active: true },
-                                            { d: "Day 3", a: "Trigger call to offer virtual 360 tour or test drive.", active: true },
-                                            { d: "Day 7", a: "Automate customized financing proposal notification.", active: false },
-                                            { d: "Day 14", a: "Final follow-up or re-engagement with new inventory.", active: false }
-                                        ].map((step, i) => (
-                                            <div key={i} className="flex gap-6 group relative">
-                                                {i !== 3 && <div className="absolute left-[23px] top-10 bottom-[-32px] w-0.5 bg-slate-100 group-last:hidden"></div>}
-                                                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-[10px] shrink-0 z-10 ${step.active ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' : 'bg-slate-50 text-slate-300'}`}>
-                                                    {step.d}
-                                                </div>
-                                                <div className="pt-1.5 grayscale group-hover:grayscale-0 transition-all opacity-70 group-hover:opacity-100">
-                                                    <p className="text-sm font-bold text-slate-900 leading-snug">{step.a}</p>
-                                                    <div className="flex items-center gap-2 mt-2">
-                                                        <span className="text-[10px] uppercase font-black tracking-widest text-indigo-600">Vini Action</span>
-                                                        <div className="h-px w-8 bg-indigo-200"></div>
+                                {/* Right Col: Interaction Plan & Vendor History */}
+                                <div className="space-y-10">
+                                    <div className="space-y-6">
+                                        <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest flex items-center gap-3">
+                                            <CheckCircle2 className="w-5 h-5 text-indigo-500" />
+                                            AI Predicted Sales Plan
+                                        </h3>
+                                        <div className="bg-white rounded-[2.5rem] border border-slate-200 p-8 shadow-sm space-y-8">
+                                            {(selectedLead.engagement_plan || [
+                                                { day: "Day 1", action: "Send digital brochure via WhatsApp based on car interest." },
+                                                { day: "Day 3", action: "Trigger call to offer virtual 360 tour or test drive." },
+                                                { day: "Day 7", action: "Automate customized financing proposal notification." },
+                                                { day: "Day 14", action: "Final follow-up or re-engagement with new inventory." }
+                                            ]).map((step: any, i: number) => (
+                                                <div key={i} className="flex gap-6 group relative">
+                                                    {i !== 3 && <div className="absolute left-[23px] top-10 bottom-[-32px] w-0.5 bg-slate-100 group-last:hidden"></div>}
+                                                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-[10px] shrink-0 z-10 ${step.active || i < 2 ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' : 'bg-slate-50 text-slate-300'}`}>
+                                                        {step.day || step.d}
+                                                    </div>
+                                                    <div className="pt-1.5 opacity-70 group-hover:opacity-100 transition-all">
+                                                        <p className="text-sm font-bold text-slate-900 leading-snug">{step.action || step.a}</p>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        ))}
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-6">
+                                        <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest flex items-center gap-3">
+                                            <Clock className="w-5 h-5 text-indigo-500" />
+                                            Vendor Interaction History
+                                        </h3>
+                                        <div className="bg-white rounded-[2.5rem] border border-slate-200 p-8 shadow-sm space-y-4">
+                                            {leads.filter(l => l.customer_id === selectedLead.customer_id).map((l, i) => (
+                                                <div key={i} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                                                    <div>
+                                                        <div className="text-sm font-bold text-slate-900">{l.vendor_id}</div>
+                                                        <div className="text-[10px] text-slate-400 font-bold uppercase">{l.stage} • {l.intent_score}</div>
+                                                    </div>
+                                                    <button 
+                                                        onClick={() => setSelectedLead(l)}
+                                                        className="text-[10px] font-black text-indigo-600 uppercase bg-white px-3 py-1 rounded-lg border border-slate-200 hover:bg-indigo-50 transition-colors"
+                                                    >
+                                                        Details
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
