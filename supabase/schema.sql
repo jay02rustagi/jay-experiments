@@ -1,4 +1,6 @@
+-- Last updated on 2026-03-18 to sync with database
 -- 1. Leads / Customers Table
+
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 CREATE TABLE customers (
