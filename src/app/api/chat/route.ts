@@ -31,9 +31,9 @@ export async function POST(req: Request) {
             .upsert({ 
                 customer_id, 
                 vendor_id 
-            }, { 
+              }, { 
                 onConflict: 'customer_id,vendor_id' 
-            });
+              });
     }
 
     // Get car data formatted as a context string
@@ -113,22 +113,16 @@ Car Inventory: ${carContext}`;
         }
     };
 
-    // --- TIER 1: PRIMARY GEMINI (New Key: ...q1Lm60) ---
+    // --- TIER 1: PRIMARY GEMINI ---
     try {
         const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
         console.log(`Tier 1 (Gemini) Attempt Start...`);
         if (!apiKey) throw new Error("Primary Gemini API Key Missing");
 
         const google = createGoogleGenerativeAI({ apiKey });
-        // PROBE: Use the verified 'gemini-flash-latest' model.
-        await generateText({
-            model: google('gemini-flash-latest'),
-            prompt: 'hi',
-            maxRetries: 0
-        });
 
         const result = await streamText({
-            model: google('gemini-flash-latest'),
+            model: google('gemini-2.5-flash'),
             system: systemPrompt,
             messages: sanitizedMessages as any,
             tools: tools as any,
@@ -143,26 +137,20 @@ Car Inventory: ${carContext}`;
         });
 
         console.log("Tier 1: Primary Gemini Success!");
-        return result.toUIMessageStreamResponse();
+        return result.toUIMessageStreamResponse({ originalMessages: messages });
     } catch (primaryError: any) {
         console.error("TIER 1 (PRIMARY) FAILED:", primaryError.message || primaryError);
 
-        // --- TIER 2: SECONDARY GEMINI (Old Key: ...2cHg) ---
+        // --- TIER 2: SECONDARY GEMINI ---
         try {
             const secondaryKey = process.env.SECONDARY_GEMINI_API_KEY;
             console.log(`Tier 2 (Gemini) Attempt Start...`);
             if (!secondaryKey) throw new Error("Secondary Gemini API Key Missing");
 
             const googleSecondary = createGoogleGenerativeAI({ apiKey: secondaryKey });
-            // PROBE: Fall back to verified model if primary fails.
-            await generateText({
-                model: googleSecondary('gemini-flash-latest'),
-                prompt: 'hi',
-                maxRetries: 0
-            });
 
             const result = await streamText({
-                model: googleSecondary('gemini-flash-latest'),
+                model: googleSecondary('gemini-2.5-flash'),
                 system: systemPrompt,
                 messages: sanitizedMessages as any,
                 tools: tools as any,
@@ -177,7 +165,7 @@ Car Inventory: ${carContext}`;
             });
 
             console.log("Tier 2: Secondary Gemini Success!");
-            return result.toUIMessageStreamResponse();
+            return result.toUIMessageStreamResponse({ originalMessages: messages });
         } catch (secondaryError: any) {
             console.error("TIER 2 (SECONDARY) FAILED:", secondaryError.message || secondaryError);
 
@@ -186,7 +174,7 @@ Car Inventory: ${carContext}`;
             let fallbackText = "Hi! I'm Vini. We're experiencing high chat volume, but I'm here to help!";
 
             if (stage === 'Presales') {
-                fallbackText = "Hi! I'm Vini. We're experiencing high chat volume, but I'm here to help! Could you tell me your name and what budget you have in mind?";
+                fallbackText = `Tier 1 Error: ${primaryError.message}\nTier 2 Error: ${secondaryError.message}\nHi! I'm Vini. I'm currently in high-load mode. How can I help?`;
             } else if (stage === 'Sales') {
                 fallbackText = "Hi! I'm Vini. Our team is currently busy, but I can help you book a showroom visit. What time works for you?";
             }
@@ -258,7 +246,7 @@ async function handleChatFinish({ text, toolCalls, toolResults }: any, messages:
             } else {
                 // Regular extraction if no booking
                 const { text: extractionText } = await generateText({
-                    model: google('gemini-flash-latest'),
+                    model: google('gemini-pro'),
                     system: "Extract lead data JSON: {name, budget, use_case, urgency}",
                     prompt: `History: ${JSON.stringify(newTranscript)}`
                 });
