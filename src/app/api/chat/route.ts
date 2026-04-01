@@ -36,10 +36,13 @@ export async function POST(req: Request) {
               });
     }
 
-    // Get car data formatted as a context string
-    const carContext = cars.map(c =>
+    // Helper to shuffle array
+    const shuffle = (array: any[]) => [...array].sort(() => Math.random() - 0.5);
+
+    // Get car data formatted as a context string (shuffled 10 for variety)
+    const carContext = shuffle(cars).slice(0, 10).map(c =>
         `- ${c.year} ${c.make} ${c.model} (${c.type}): $${c.price.toLocaleString()}\n  Specs: ${JSON.stringify(c.specs)}`
-    ).sort(() => Math.random() - 0.5).slice(0, 10).join('\n\n');
+    ).join('\n\n');
 
     let systemPrompt = "";
     if (stage === 'Presales') {
@@ -96,10 +99,30 @@ Car Inventory: ${carContext}`;
                 preferences: z.string()
             })),
             execute: async ({ preferences }: { preferences: string }) => {
-                const recommended = cars
-                    .filter(c => preferences.toLowerCase().includes(c.type.toLowerCase()) || preferences.toLowerCase().includes(c.make.toLowerCase()) || Math.random() > 0.5)
-                    .slice(0, 3);
-                return { cars: recommended };
+                const prefs = preferences.toLowerCase();
+                const matched = cars.filter(c => {
+                    const type = c.type.toLowerCase();
+                    const make = c.make.toLowerCase();
+                    const model = c.model.toLowerCase();
+                    
+                    // Direct match on type (handle plural like "sedans")
+                    if (prefs.includes(type) || type.includes(prefs.replace(/s$/, ''))) return true;
+                    // Match on make or model
+                    if (prefs.includes(make) || prefs.includes(model)) return true;
+                    // Match on special keywords
+                    if (prefs.includes('luxury') && c.price > 40000) return true;
+                    if (prefs.includes('budget') && c.price < 30000) return true;
+                    
+                    return false;
+                });
+
+                // Shuffle matches and take 3 for variety
+                const recommended = shuffle(matched).slice(0, 3);
+                
+                // If no exact matches, provide 3 random ones to keep flow moving
+                const results = recommended.length > 0 ? recommended : shuffle(cars).slice(0, 3);
+                
+                return { cars: results };
             }
         },
         book_demo: {
