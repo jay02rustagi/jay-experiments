@@ -46,7 +46,7 @@ export default function ViniChat({
         }]
     } as UIMessage;
 
-    const { messages, sendMessage, status, addToolResult, setMessages } = useChat({
+    const { messages, sendMessage, status, error, addToolResult, setMessages } = useChat({
         messages: [initialMessage]
     });
 
@@ -378,7 +378,7 @@ export default function ViniChat({
                                             const hasResult = p.state === 'output-available' || p.state === 'result' || p.result;
                                             const data = p.output || p.result;
 
-                                            if (isListCars && hasResult && data?.cars) {
+                                            if (isListCars && hasResult && data?.cars?.length > 0) {
                                                 return <CarCarousel key={p.toolCallId || i} cars={data.cars} />;
                                             }
                                             if (isBookDemo && (p.state === 'call' || p.state === 'output-available' || p.state === 'result' || p.result)) {
@@ -403,6 +403,9 @@ export default function ViniChat({
                                 </div>
                             </div>
                         ))}
+                        {error && !isLoading && (
+                            <p className="text-center text-xs text-gray-500">Vini couldn't reply just now. Please send your message again.</p>
+                        )}
                         {isLoading && (
                             <div className="flex justify-start">
                                 <div className="flex max-w-[80%] gap-2">
