@@ -26,3 +26,18 @@ CREATE TABLE customer_cars (
   service_notes TEXT,
   maintenance_upgrades TEXT
 );
+
+-- 3. Vendor Leads (one row per customer per dealer; drives the admin CRM)
+-- Reconstructed from app code on 2026-09-24; compare against the live table before re-running.
+CREATE TABLE vendor_leads (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  customer_id UUID REFERENCES customers(id),
+  vendor_id TEXT NOT NULL DEFAULT 'dealer_default',
+  stage TEXT DEFAULT 'Presales', -- 'Presales', 'Sales', 'Aftersales'
+  intent_score TEXT DEFAULT 'Cold', -- 'Cold', 'Warm', 'Hot'
+  intent_summary TEXT, -- JSON string: { insights, last_update }
+  chat_transcript JSONB DEFAULT '[]',
+  engagement_plan JSONB,
+  created_at TIMESTAMP DEFAULT NOW(),
+  UNIQUE (customer_id, vendor_id) -- required by upsert onConflict 'customer_id,vendor_id'
+);

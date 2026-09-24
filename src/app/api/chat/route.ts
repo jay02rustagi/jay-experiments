@@ -197,7 +197,7 @@ Car Inventory: ${carContext}`;
             let fallbackText = "Hi! I'm Vini. We're experiencing high chat volume, but I'm here to help!";
 
             if (stage === 'Presales') {
-                fallbackText = `Tier 1 Error: ${primaryError.message}\nTier 2 Error: ${secondaryError.message}\nHi! I'm Vini. I'm currently in high-load mode. How can I help?`;
+                fallbackText = "Hi! I'm Vini. I'm in high-load mode right now, but I can still help you shortlist cars or book a test drive. What are you looking for?";
             } else if (stage === 'Sales') {
                 fallbackText = "Hi! I'm Vini. Our team is currently busy, but I can help you book a showroom visit. What time works for you?";
             }
@@ -269,7 +269,7 @@ async function handleChatFinish({ text, toolCalls, toolResults }: any, messages:
             } else {
                 // Regular extraction if no booking
                 const { text: extractionText } = await generateText({
-                    model: google('gemini-pro'),
+                    model: google('gemini-2.5-flash'),
                     system: "Extract lead data JSON: {name, budget, use_case, urgency}",
                     prompt: `History: ${JSON.stringify(newTranscript)}`
                 });
